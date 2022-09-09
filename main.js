@@ -3,7 +3,7 @@ import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
 
 const SINGLE_ANIMATIONS = [
-	"Idle", "Walking", "Run",
+	"Walking", "Run",
 	"Finishing", "Death"
 ]
 
@@ -79,12 +79,16 @@ function main() {
 
 				characterMixers.push(currentMixer);
 
-				const idleAction = currentMixer.clipAction( object.animations[0]);
+				const idleAction = currentMixer.clipAction(object.animations[0]);
 				idleAction.play();
 	
 				scene.add(object);
 
 				let animationsName = [...SINGLE_ANIMATIONS];
+
+				animationActions.push([]);
+				animationActions[characterIndex].push();
+				activeAction.push(idleAction);
 
 				for (let index in MULTIPLE_ANIMATIONS){
 					for (let i = 0; i < characterValues[MULTIPLE_ANIMATIONS[index] + "Number"]; ++i){
@@ -92,21 +96,22 @@ function main() {
 					}
 				}
 
-				console.log(animationsName);
-
 				for (let index in animationsName){
 					let animation = animationsName[index];
 
 					fbxLoader.load(
 						'/resources/' + characterValues["fileName"]  + '/' + animation + '.fbx',
-						(object) => {
-							currentMixer.clipAction(object.animations[0]);
+						(object_in) => {
+							console.log("Loading " + animation);
+							const tempAnimation = currentMixer.clipAction(object_in.animations[0]);
+
+							animationActions[characterIndex].push(tempAnimation);
 						},
-						(xhr) => {
-							console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+						(xhr_in) => {
+							console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
 						},
-						(error) => {
-							console.log(error);
+						(error_in) => {
+							console.log(error_in);
 					});
 				}
 				
@@ -161,20 +166,27 @@ function main() {
     }
 
     const setAction = (index, toAction) => {
-        console.log(activeAction);
-        if (toAction != activeAction) {
-            lastAction = activeAction
-            activeAction = toAction
-            lastAction.stop()
+		const action = animationActions[index][toAction];
+
+        if (action != activeAction[index]) {
+            lastAction[index] = activeAction[index];
+            activeAction[index] = action;
+            lastAction[index].stop();
             //lastAction.fadeOut(1)
-            activeAction.reset()
+            activeAction[index].reset();
             //activeAction.fadeIn(1)
-            activeAction.play()
+            activeAction[index].play();
         }
     }
 
 	function parseKey(key, code){
-
+		if (key == "1"){
+			console.log("Set action to 1");
+			setAction(0, 1);
+		} else if (key == "0"){
+			setAction(0, 0);
+			console.log("Set action to 0");
+		}
 	}
 	
 	document.addEventListener('keypress', (event) => {

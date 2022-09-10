@@ -3,34 +3,42 @@ import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
 
 const SINGLE_ANIMATIONS = [
-	"Walking", "Run",
-	"Finishing", "Death"
+	"Walking",/*"Run",
+	"Finishing", "Death"*/
 ]
 
 const MULTIPLE_ANIMATIONS = [
-	"Attack", "Hurt"
+	/*"Attack", "Hurt"*/
 ]
 
 function main() {
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({canvas});
 
-    const camera = new THREE.PerspectiveCamera(
+    /*const camera = new THREE.PerspectiveCamera(
 		CONSTANTS.CameraData["fov"], 
 		CONSTANTS.CameraData["aspect"], 
 		CONSTANTS.CameraData["near"], 
-		CONSTANTS.CameraData["far"]);
+		CONSTANTS.CameraData["far"]);*/
+
+
+
+	const camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2,  window.innerHeight / 2,  window.innerHeight / - 2, 1, 1000 );
 
     camera.position.x = CONSTANTS.CameraData["position"][0];
-	camera.position.y = CONSTANTS.CameraData["position"][1]
-	camera.position.z = CONSTANTS.CameraData["position"][2]
+	camera.position.y = CONSTANTS.CameraData["position"][1];
+	camera.position.z = CONSTANTS.CameraData["position"][2];
+
+	camera.rotation.x = CONSTANTS.CameraData["orientation"][0];
+	camera.rotation.y = CONSTANTS.CameraData["orientation"][1];
+	camera.rotation.z = CONSTANTS.CameraData["orientation"][2];
 
     const scene = new THREE.Scene();
 
-    let light = new THREE.PointLight();
-    light.position.set(0.8, 0, 1.0);
-	light.intensity = 3;
-    scene.add(light);
+	let light = new THREE.AmbientLight(0x404040);
+	light.intensity = 7;
+
+	scene.add(light);
 
     let characterMixers = [];
     const animationActions = [];
@@ -39,10 +47,16 @@ function main() {
 
 	let modelsReady = false;
 
-	const textureLoader = new THREE.TextureLoader();
+	let characterImageIcon = [];
+
+	let characterLifes = [];
+
+	let characterCurrentLife = [];
 	
 	// Loading all resources
-	
+
+		
+	const textureLoader = new THREE.TextureLoader();
     const fbxLoader = new FBXLoader();
 
 	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
@@ -59,6 +73,21 @@ function main() {
 			texture.magFilter = THREE.NearestFilter;
 		}
 
+		
+		let text = document.createElement('div');
+		text.style.position = 'absolute';
+		text.style.width = 300;
+		text.style.height = 300;
+		text.style.color = "white";
+		text.style.fontSize = "40px";
+		text.innerHTML = "0 %";
+		let textPosition = getPositionForLife(characterValues["position"]);
+		text.style.left = textPosition[0]  + 'px';
+		text.style.top = textPosition[1]  + 'px';
+		document.body.appendChild(text);
+		
+		characterLifes.push(text);
+
 		fbxLoader.load(
 			'/resources/' + characterValues["fileName"]  + '/Idle.fbx',
 			(object) => {
@@ -74,6 +103,7 @@ function main() {
 
 				object.scale.set(characterValues["scale"][0], characterValues["scale"][1], characterValues["scale"][2]);
 				object.position.set(characterValues["position"][0], characterValues["position"][1], characterValues["position"][2]);
+				object.rotation.set(characterValues["orientation"][0], characterValues["orientation"][1], characterValues["orientation"][2])
 
 				const currentMixer = new THREE.AnimationMixer(object);
 
@@ -127,16 +157,41 @@ function main() {
 				console.log(error);
 			}
 		);
+
+		characterImageIcon.push([]);
+
+		var material = new THREE.MeshLambertMaterial({
+			map: textureLoader.load('/resources/' + characterValues["fileName"] + "/icon.png"),
+			transparent: true
+		});
+		var geometry = new THREE.PlaneGeometry(characterValues["iconScale"], characterValues["iconScale"]);
+
+		for (let i = 0; i < CONSTANTS.GameData["numberLife"]; ++i){
+			var mesh = new THREE.Mesh(geometry, material);
+
+			mesh.position.set(characterValues["position"][0] * 0.785 + 0.5 + i * 0.3, characterValues["position"][1] * 0.77 - 0.19, 0);
+			console.log(mesh.size);
+	
+			// add the image to the scene
+			scene.add(mesh);
+			characterImageIcon[characterIndex].push(mesh);
+		}
+
+		characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
 	}
 
-
+	function getPositionForLife(characterPosition){
+		return [window.innerWidth * 0.5 + characterPosition[0] * 1.23 - 20,
+				window.innerHeight * 0.5 - characterPosition[1] * 1.20 + 80 ];
+	}
+	
     function resizeRendererToDisplaySize(renderer) {
      	const canvas = renderer.domElement;
      	const width = canvas.clientWidth;
      	const height = canvas.clientHeight;
      	const needResize = canvas.width !== width || canvas.height !== height;
      	if (needResize) {
-     	  renderer.setSize(width, height, false);
+     	  	renderer.setSize(width, height, false);
      	}
      	return needResize;
     }
@@ -181,8 +236,9 @@ function main() {
 
 	function parseKey(key, code){
 		if (key == "1"){
-			console.log("Set action to 1");
 			setAction(0, 1);
+			console.log("Set action to 1");
+
 		} else if (key == "0"){
 			setAction(0, 0);
 			console.log("Set action to 0");

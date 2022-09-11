@@ -1,6 +1,7 @@
 import * as THREE from '/librairies/threejs/three.module.js';
 import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
+import { CharactersData } from './constants.js';
 
 const SINGLE_ANIMATIONS = [
 	"Walking",/*"Run",
@@ -21,8 +22,6 @@ function main() {
 		CONSTANTS.CameraData["near"], 
 		CONSTANTS.CameraData["far"]);*/
 
-
-
 	const camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2,  window.innerHeight / 2,  window.innerHeight / - 2, 1, 1000 );
 
     camera.position.x = CONSTANTS.CameraData["position"][0];
@@ -36,7 +35,7 @@ function main() {
     const scene = new THREE.Scene();
 
 	let light = new THREE.AmbientLight(0x404040);
-	light.intensity = 7;
+	light.intensity = 5;
 
 	scene.add(light);
 
@@ -49,10 +48,14 @@ function main() {
 
 	let characterImageIcon = [];
 
-	let characterLifes = [];
+	let charactersLifeText = [];
 
 	let characterCurrentLife = [];
-	
+	let characterDamageTaken = [];
+
+	let currentCharacterAttacking = -1;
+	let currentAttackedCharacter = -1;
+
 	// Loading all resources
 
 		
@@ -60,7 +63,6 @@ function main() {
     const fbxLoader = new FBXLoader();
 
 	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
-		console.log(CONSTANTS.CharactersData)
 		const characterValues = CONSTANTS.CharactersData[characterIndex];
 
 		const path = "/resources/" + characterValues["fileName"];
@@ -76,17 +78,19 @@ function main() {
 		
 		let text = document.createElement('div');
 		text.style.position = 'absolute';
-		text.style.width = 300;
-		text.style.height = 300;
+		text.style.width = 400;
+		text.style.height = 400;
 		text.style.color = "white";
 		text.style.fontSize = "40px";
-		text.innerHTML = "0 %";
 		let textPosition = getPositionForLife(characterValues["position"]);
-		text.style.left = textPosition[0]  + 'px';
+		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
+		text.style.textAlign = "left";
+		text.innerHTML = "0 %";
+
 		document.body.appendChild(text);
 		
-		characterLifes.push(text);
+		charactersLifeText.push(text);
 
 		fbxLoader.load(
 			'/resources/' + characterValues["fileName"]  + '/Idle.fbx',
@@ -169,8 +173,8 @@ function main() {
 		for (let i = 0; i < CONSTANTS.GameData["numberLife"]; ++i){
 			var mesh = new THREE.Mesh(geometry, material);
 
-			mesh.position.set(characterValues["position"][0] * 0.785 + 0.5 + i * 0.3, characterValues["position"][1] * 0.77 - 0.19, 0);
-			console.log(mesh.size);
+			mesh.position.set(
+				characterValues["position"][0] + i * 50 + 60, characterValues["position"][1] * 1.01 - 16, -50);
 	
 			// add the image to the scene
 			scene.add(mesh);
@@ -178,11 +182,12 @@ function main() {
 		}
 
 		characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
+		characterDamageTaken.push(0);
 	}
 
 	function getPositionForLife(characterPosition){
-		return [window.innerWidth * 0.5 + characterPosition[0] * 1.23 - 20,
-				window.innerHeight * 0.5 - characterPosition[1] * 1.20 + 80 ];
+		return [window.innerWidth * 0.5 - characterPosition[0] - 20,
+				window.innerHeight * 0.5 - characterPosition[1] + 80 ];
 	}
 	
     function resizeRendererToDisplaySize(renderer) {
@@ -234,20 +239,63 @@ function main() {
         }
     }
 
-	function parseKey(key, code){
-		if (key == "1"){
-			setAction(0, 1);
-			console.log("Set action to 1");
+	function convertKeyToCharacterNumber(key){
+		if (isNaN(key) || isNaN(parseFloat(key)))
+			return -1;
 
-		} else if (key == "0"){
-			setAction(0, 0);
-			console.log("Set action to 0");
+		const value = parseInt(key);
+
+		if (value < 0 || value >= CONSTANTS.CharactersNumber)
+			return -1;
+
+		return parseInt(key);
+	}
+
+	function parseKey(key, code){
+		if (code === "Space"){
+			currentCharacterAttacking = -1;
+			return;
+		} 
+
+		const index = convertKeyToCharacterNumber(key);
+		if (index == -1)
+			return;
+
+		if (currentCharacterAttacking === -1){
+			if (characterCurrentLife[index] <= 0)
+				return;
+
+			currentCharacterAttacking = index;
+			charactersLifeText[index].style.fontWeight = "bold";
+		} else {
+			if (characterCurrentLife[index] <= 0)
+				return;
+
+			characterAttack(currentCharacterAttacking, index);
+
+			charactersLifeText[currentCharacterAttacking].style.fontWeight = "normal";
+			currentCharacterAttacking = -1;
 		}
+	}
+
+	function characterAttack(attacking, attacked){
+		if (attacking === attacked)
+			return;
+
+		characterDamageTaken[attacked] += CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"];
+		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(1));
+
+		if (characterDamageTaken[attacked] > 100){
+			characterDamageTaken[attacked] = 0;
+			characterCurrentLife[attacked] -= 1;
+		}
+
+		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
 	}
 	
 	document.addEventListener('keypress', (event) => {
 		parseKey(event.key, event.code);
-	  }, false);
+	}, false);
 
     requestAnimationFrame(render);
 }

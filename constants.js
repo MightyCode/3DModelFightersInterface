@@ -26,8 +26,8 @@ const CharactersData = [
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 2.4,
-		"iconScale" : 0.3
+		"coefficient" : 2.4,
+		"iconScale" : 40
 	}, {
 		"filliere" : "elec",
 		"fileName" : "Mario",
@@ -36,8 +36,8 @@ const CharactersData = [
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 2.4,
-		"iconScale" : 0.3
+		"coefficient" : 2.4,
+		"iconScale" : 40
 	}, {
 		"filliere" : "info",
 		"fileName" : "Mario",
@@ -46,8 +46,8 @@ const CharactersData = [
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 2.4,
-		"iconScale" : 0.3
+		"coefficient" : 2.4,
+		"iconScale" : 40
 	}, {
 		"filliere" : "telecom",
 		"fileName" : "Mario",
@@ -56,8 +56,8 @@ const CharactersData = [
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 1.4,
-		"iconScale" : 0.3
+		"coefficient" : 1.4,
+		"iconScale" : 40
 	}, {
 		"filliere" : "rsi",
 		"fileName" : "Mario",
@@ -66,8 +66,8 @@ const CharactersData = [
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 0.8,
-		"iconScale" : 0.3
+		"coefficient" : 0.8,
+		"iconScale" : 40
 	}, {
 		"filliere" : "see",
 		"fileName" : "Mario",
@@ -76,8 +76,8 @@ const CharactersData = [
 		"orientation" : [0, -0, 0],
 		"AttackNumber" : 2,
 		"HurtNumber" : 2,
-		"coeficient" : 0.8,
-		"iconScale" : 0.3
+		"coefficient" : 0.8,
+		"iconScale" : 40
 	}
 ];
 

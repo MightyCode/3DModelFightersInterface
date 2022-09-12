@@ -1,11 +1,10 @@
 import * as THREE from '/librairies/threejs/three.module.js';
 import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
-import { CharactersData } from './constants.js';
 
 const SINGLE_ANIMATIONS = [
-	"Walking",/*"Run",
-	"Finishing", "Death"*/
+	"Walking", "Death"/*"Run",
+	"Finishing", */
 ]
 
 const MULTIPLE_ANIMATIONS = [
@@ -46,7 +45,7 @@ function main() {
 
 	let modelsReady = false;
 
-	let characterImageIcon = [];
+	let characterLifeIcon = [];
 
 	let charactersLifeText = [];
 
@@ -57,7 +56,6 @@ function main() {
 	let currentAttackedCharacter = -1;
 
 	// Loading all resources
-
 		
 	const textureLoader = new THREE.TextureLoader();
     const fbxLoader = new FBXLoader();
@@ -114,6 +112,7 @@ function main() {
 				characterMixers.push(currentMixer);
 
 				const idleAction = currentMixer.clipAction(object.animations[0]);
+				idleAction.timeScale = 0.9 + Math.random() * 0.2;
 				idleAction.play();
 	
 				scene.add(object);
@@ -138,6 +137,10 @@ function main() {
 						(object_in) => {
 							console.log("Loading " + animation);
 							const tempAnimation = currentMixer.clipAction(object_in.animations[0]);
+							if (animation == "Death"){
+								tempAnimation.loop = THREE.LoopOnce;
+								tempAnimation.clampWhenFinished = true;
+							}
 
 							animationActions[characterIndex].push(tempAnimation);
 						},
@@ -162,7 +165,7 @@ function main() {
 			}
 		);
 
-		characterImageIcon.push([]);
+		characterLifeIcon.push([]);
 
 		var material = new THREE.MeshLambertMaterial({
 			map: textureLoader.load('/resources/' + characterValues["fileName"] + "/icon.png"),
@@ -178,7 +181,7 @@ function main() {
 	
 			// add the image to the scene
 			scene.add(mesh);
-			characterImageIcon[characterIndex].push(mesh);
+			characterLifeIcon[characterIndex].push(mesh);
 		}
 
 		characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
@@ -216,8 +219,7 @@ function main() {
 			for (let i = 0; i < CONSTANTS.CharactersNumber; ++i){
 				characterMixers[i].update(delta);
 			}
-		} 
-     	else 
+		} else 
         	console.log("Model not ready");
 
       	renderer.render(scene, camera);
@@ -285,9 +287,17 @@ function main() {
 		characterDamageTaken[attacked] += CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"];
 		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(1));
 
-		if (characterDamageTaken[attacked] > 100){
+		if (characterDamageTaken[attacked] >= 100){
 			characterDamageTaken[attacked] = 0;
 			characterCurrentLife[attacked] -= 1;
+
+			scene.remove(characterLifeIcon[attacked][characterCurrentLife[attacked]]);
+			characterLifeIcon[attacked].splice(-1);
+			
+			if (characterCurrentLife[attacked] == 0){
+				setAction(attacked, SINGLE_ANIMATIONS.indexOf("Death"));
+				activeAction[attack].loop = THREE.LoopOnce;
+			} 
 		}
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";

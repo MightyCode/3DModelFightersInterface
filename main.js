@@ -1,9 +1,13 @@
 import * as THREE from '/librairies/threejs/three.module.js';
 import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
+import * as SHAKING from "/shaking.js"
+
+const HIT_TEXT_COLOR = "Red";
+const TIME_FOR_HIT = 2;
 
 const SINGLE_ANIMATIONS = [
-	"Walking", "Death"/*"Run",
+	/*"Walking",*/ "Death"/*"Run",
 	"Finishing", */
 ]
 
@@ -55,6 +59,8 @@ function main() {
 	let currentCharacterAttacking = -1;
 	let currentAttackedCharacter = -1;
 
+	let timeCurrentHitRemaining = 0;
+
 	// Loading all resources
 		
 	const textureLoader = new THREE.TextureLoader();
@@ -85,6 +91,7 @@ function main() {
 		text.style.top = textPosition[1]  + 'px';
 		text.style.textAlign = "left";
 		text.innerHTML = "0 %";
+		text.classList.add("not-selectable");
 
 		document.body.appendChild(text);
 		
@@ -222,6 +229,19 @@ function main() {
 		} else 
         	console.log("Model not ready");
 
+		// Hit animation
+		if (currentAttackedCharacter != -1){
+			timeCurrentHitRemaining -= delta;
+			console.log(timeCurrentHitRemaining);
+
+			if (timeCurrentHitRemaining <= 0){
+				charactersLifeText[currentAttackedCharacter].style.color = "white";
+
+				currentAttackedCharacter = -1;
+				currentCharacterAttacking = -1;
+			}
+		}
+
       	renderer.render(scene, camera);
 
       	requestAnimationFrame(render);
@@ -269,14 +289,14 @@ function main() {
 
 			currentCharacterAttacking = index;
 			charactersLifeText[index].style.fontWeight = "bold";
-		} else {
+		} else if (currentAttackedCharacter === -1){
 			if (characterCurrentLife[index] <= 0)
 				return;
 
+			currentAttackedCharacter = index;
 			characterAttack(currentCharacterAttacking, index);
 
 			charactersLifeText[currentCharacterAttacking].style.fontWeight = "normal";
-			currentCharacterAttacking = -1;
 		}
 	}
 
@@ -296,11 +316,16 @@ function main() {
 			
 			if (characterCurrentLife[attacked] == 0){
 				setAction(attacked, SINGLE_ANIMATIONS.indexOf("Death"));
-				activeAction[attack].loop = THREE.LoopOnce;
+				activeAction[attacked].loop = THREE.LoopOnce;
 			} 
 		}
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
+		charactersLifeText[attacked].style.color = HIT_TEXT_COLOR;
+
+		SHAKING.Shaking(charactersLifeText[attacked]);
+		
+		timeCurrentHitRemaining = TIME_FOR_HIT;
 	}
 	
 	document.addEventListener('keypress', (event) => {

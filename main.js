@@ -7,13 +7,15 @@ const HIT_TEXT_COLOR = "Red";
 const TIME_FOR_HIT = 7;
 
 const SINGLE_ANIMATIONS = [
-	"Idle", /*"Walking",*/ "Death"/*"Run",
-	"Finishing", */
+	"Idle", "Walking", "Death", "Run",
+	"Finishing"
 ]
 
 const MULTIPLE_ANIMATIONS = [
-	/*"Attack",*/ "Hurt"
+	"Attack", "Hurt"
 ]
+
+const loadingQueue = [];
 
 function main() {
     const canvas = document.querySelector('#c');
@@ -124,17 +126,22 @@ function main() {
 	
 				scene.add(object);
 
-				let animationsName = [...SINGLE_ANIMATIONS];
-				animationsName.splice(0, 1);
-
 				animationActions.push([idleAction]);
 				activeAction.push(idleAction);
 				lastAction.push(idleAction);
+
+				
+				let animationsName = [...SINGLE_ANIMATIONS];
+				animationsName.splice(0, 1);
 
 				for (let index in MULTIPLE_ANIMATIONS){
 					for (let i = 0; i < characterValues[MULTIPLE_ANIMATIONS[index] + "Number"]; ++i){
 						animationsName.push(MULTIPLE_ANIMATIONS[index] + (i + 1));
 					}
+				}
+
+				for (let index in animationsName){
+					animationActions[characterIndex].push("");
 				}
 
 				for (let index in animationsName){
@@ -144,16 +151,17 @@ function main() {
 						'/resources/' + characterValues["fileName"]  + '/' + animation + '.fbx',
 						(object_in) => {
 							console.log("Loading " + animation);
+							
 							const tempAnimation = currentMixer.clipAction(object_in.animations[0]);
 							if (animation == "Death"){
 								tempAnimation.loop = THREE.LoopOnce;
 								tempAnimation.clampWhenFinished = true;
 							}
-
-							animationActions[characterIndex].push(tempAnimation);
+							
+							animationActions[characterIndex][animationsName.indexOf(animation) + 1] = tempAnimation;
 						},
 						(xhr_in) => {
-							console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
+							//console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
 						},
 						(error_in) => {
 							console.log(error_in);
@@ -166,7 +174,7 @@ function main() {
 				}
 			},
 			(xhr) => {
-				console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+				//console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
 			},
 			(error) => {
 				console.log(error);
@@ -237,10 +245,8 @@ function main() {
 			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].style.color != "white") {
 				charactersLifeText[currentAttackedCharacter].style.color = "white";
 			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
-				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Idle")]){
-
-				console.log(SINGLE_ANIMATIONS);
-				console.log(getAnimationIndex(currentAttackedCharacter, "Idle"));
+				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]){
+				console.log(getAnimationIndex(currentAttackedCharacter, "Run") + " " + getAnimationIndex(currentAttackedCharacter, "Idle"));
 				setAction(currentAttackedCharacter, getAnimationIndex(currentAttackedCharacter, "Idle"));
 			}
 		}

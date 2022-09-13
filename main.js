@@ -4,10 +4,10 @@ import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.j
 import * as SHAKING from "/shaking.js"
 
 const HIT_TEXT_COLOR = "Red";
-const TIME_FOR_HIT = 2;
+const TIME_FOR_HIT = 7;
 
 const SINGLE_ANIMATIONS = [
-	/*"Walking",*/ "Death"/*"Run",
+	"Idle", /*"Walking",*/ "Death"/*"Run",
 	"Finishing", */
 ]
 
@@ -125,10 +125,11 @@ function main() {
 				scene.add(object);
 
 				let animationsName = [...SINGLE_ANIMATIONS];
+				animationsName.splice(0, 1);
 
-				animationActions.push([]);
-				animationActions[characterIndex].push();
+				animationActions.push([idleAction]);
 				activeAction.push(idleAction);
+				lastAction.push(idleAction);
 
 				for (let index in MULTIPLE_ANIMATIONS){
 					for (let i = 0; i < characterValues[MULTIPLE_ANIMATIONS[index] + "Number"]; ++i){
@@ -223,24 +224,33 @@ function main() {
     		camera.updateProjectionMatrix();
       	}
     
-     	if (modelsReady){
+
+		// Hit animation
+		if (currentAttackedCharacter != -1){
+			timeCurrentHitRemaining += delta;
+			
+			console.log(activeAction[currentAttackedCharacter].getClip().duration);
+
+			if (timeCurrentHitRemaining >= TIME_FOR_HIT){
+				currentAttackedCharacter = -1;
+				currentCharacterAttacking = -1;
+			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].style.color != "white") {
+				charactersLifeText[currentAttackedCharacter].style.color = "white";
+			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
+				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Idle")]){
+
+				console.log(SINGLE_ANIMATIONS);
+				console.log(getAnimationIndex(currentAttackedCharacter, "Idle"));
+				setAction(currentAttackedCharacter, getAnimationIndex(currentAttackedCharacter, "Idle"));
+			}
+		}
+
+		if (modelsReady){
 			for (let i = 0; i < CONSTANTS.CharactersNumber; ++i){
 				characterMixers[i].update(delta);
 			}
 		} else 
         	console.log("Model not ready");
-
-		// Hit animation
-		if (currentAttackedCharacter != -1){
-			timeCurrentHitRemaining -= delta;
-
-			if (timeCurrentHitRemaining <= 0){
-				charactersLifeText[currentAttackedCharacter].style.color = "white";
-
-				currentAttackedCharacter = -1;
-				currentCharacterAttacking = -1;
-			}
-		}
 
       	renderer.render(scene, camera);
 
@@ -253,60 +263,18 @@ function main() {
         if (action != activeAction[index]) {
             lastAction[index] = activeAction[index];
             activeAction[index] = action;
-            lastAction[index].stop();
-            //lastAction.fadeOut(1)
             activeAction[index].reset();
-            //activeAction.fadeIn(1)
             activeAction[index].play();
+
+			lastAction[index].crossFadeTo(activeAction[index], 0.25, true);
         }
     }
-
-	function convertKeyToCharacterNumber(key){
-		if (isNaN(key) || isNaN(parseFloat(key)))
-			return -1;
-
-		const value = parseInt(key);
-
-		if (value < 0 || value >= CONSTANTS.CharactersNumber)
-			return -1;
-
-		return parseInt(key);
-	}
-
-	function parseKey(key, code){
-		if (code === "Space"){
-			currentCharacterAttacking = -1;
-			return;
-		} 
-
-		const index = convertKeyToCharacterNumber(key);
-		if (index == -1)
-			return;
-
-		if (currentCharacterAttacking === -1){
-			if (characterCurrentLife[index] <= 0)
-				return;
-
-			currentCharacterAttacking = index;
-			charactersLifeText[index].style.fontWeight = "bold";
-		} else if (currentAttackedCharacter === -1){
-			if (characterCurrentLife[index] <= 0)
-				return;
-
-			currentAttackedCharacter = index;
-			characterAttack(currentCharacterAttacking, index);
-
-			charactersLifeText[currentCharacterAttacking].style.fontWeight = "normal";
-		}
-	}
 
 	function getRandomInt(max) {
 		return Math.floor(Math.random() * max);
 	  }
 
 	function getAnimationIndex(character, type){
-		console.log("INdex of " + type);
-		
 		if (SINGLE_ANIMATIONS.includes(type))
 			return SINGLE_ANIMATIONS.indexOf(type);
 		else if (MULTIPLE_ANIMATIONS.includes(type)){
@@ -353,9 +321,48 @@ function main() {
 
 		SHAKING.Shaking(charactersLifeText[attacked]);
 		
-		timeCurrentHitRemaining = TIME_FOR_HIT;
+		timeCurrentHitRemaining = 0;
 	}
 	
+	function convertKeyToCharacterNumber(key){
+		if (isNaN(key) || isNaN(parseFloat(key)))
+			return -1;
+
+		const value = parseInt(key);
+
+		if (value < 0 || value >= CONSTANTS.CharactersNumber)
+			return -1;
+
+		return parseInt(key);
+	}
+	
+	function parseKey(key, code){
+		if (code === "Space"){
+			currentCharacterAttacking = -1;
+			return;
+		} 
+
+		const index = convertKeyToCharacterNumber(key);
+		if (index == -1)
+			return;
+
+		if (currentCharacterAttacking === -1){
+			if (characterCurrentLife[index] <= 0)
+				return;
+
+			currentCharacterAttacking = index;
+			charactersLifeText[index].style.fontWeight = "bold";
+		} else if (currentAttackedCharacter === -1){
+			if (characterCurrentLife[index] <= 0)
+				return;
+
+			currentAttackedCharacter = index;
+			characterAttack(currentCharacterAttacking, index);
+
+			charactersLifeText[currentCharacterAttacking].style.fontWeight = "normal";
+		}
+	}
+
 	document.addEventListener('keypress', (event) => {
 		parseKey(event.key, event.code);
 	}, false);

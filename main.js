@@ -12,7 +12,7 @@ const SINGLE_ANIMATIONS = [
 ]
 
 const MULTIPLE_ANIMATIONS = [
-	/*"Attack", "Hurt"*/
+	/*"Attack",*/ "Hurt"
 ]
 
 function main() {
@@ -208,6 +208,7 @@ function main() {
      	if (needResize) {
      	  	renderer.setSize(width, height, false);
      	}
+
      	return needResize;
     }
 
@@ -232,7 +233,6 @@ function main() {
 		// Hit animation
 		if (currentAttackedCharacter != -1){
 			timeCurrentHitRemaining -= delta;
-			console.log(timeCurrentHitRemaining);
 
 			if (timeCurrentHitRemaining <= 0){
 				charactersLifeText[currentAttackedCharacter].style.color = "white";
@@ -300,6 +300,30 @@ function main() {
 		}
 	}
 
+	function getRandomInt(max) {
+		return Math.floor(Math.random() * max);
+	  }
+
+	function getAnimationIndex(character, type){
+		console.log("INdex of " + type);
+		
+		if (SINGLE_ANIMATIONS.includes(type))
+			return SINGLE_ANIMATIONS.indexOf(type);
+		else if (MULTIPLE_ANIMATIONS.includes(type)){
+			let startIndex = 0;
+
+			for (let i = 0; i < MULTIPLE_ANIMATIONS.indexOf(type); ++i){
+				startIndex += CONSTANTS.CharactersData[character][MULTIPLE_ANIMATIONS[i] + "Number"]
+			}
+
+			console.log(SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]));
+			
+			return SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]);
+		}
+			
+		return 0;
+	}
+
 	function characterAttack(attacking, attacked){
 		if (attacking === attacked)
 			return;
@@ -315,9 +339,13 @@ function main() {
 			characterLifeIcon[attacked].splice(-1);
 			
 			if (characterCurrentLife[attacked] == 0){
-				setAction(attacked, SINGLE_ANIMATIONS.indexOf("Death"));
+				setAction(attacked, getAnimationIndex(attacked, "Death"));
 				activeAction[attacked].loop = THREE.LoopOnce;
-			} 
+			} else {
+				setAction(attacked, getAnimationIndex(attacked, "Hurt"));
+			}
+		} else {
+			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
 		}
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";

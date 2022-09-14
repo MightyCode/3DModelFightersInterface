@@ -237,7 +237,10 @@ function main() {
 		if (currentAttackedCharacter != -1){
 			timeCurrentHitRemaining += delta;
 			
-			console.log(activeAction[currentAttackedCharacter].getClip().duration);
+			if (timeCurrentHitRemaining >= activeAction[currentCharacterAttacking].getClip().duration 
+			&& activeAction[currentCharacterAttacking] != animationActions[currentCharacterAttacking][getAnimationIndex(currentCharacterAttacking, "Finishing")]){
+				setAction(currentCharacterAttacking, getAnimationIndex(currentCharacterAttacking, "Idle"));
+			}
 
 			if (timeCurrentHitRemaining >= TIME_FOR_HIT){
 				currentAttackedCharacter = -1;
@@ -305,6 +308,8 @@ function main() {
 		characterDamageTaken[attacked] += CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"];
 		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(1));
 
+		let death = false;
+
 		if (characterDamageTaken[attacked] >= 100){
 			characterDamageTaken[attacked] = 0;
 			characterCurrentLife[attacked] -= 1;
@@ -313,13 +318,17 @@ function main() {
 			characterLifeIcon[attacked].splice(-1);
 			
 			if (characterCurrentLife[attacked] == 0){
-				setAction(attacked, getAnimationIndex(attacked, "Death"));
-				activeAction[attacked].loop = THREE.LoopOnce;
-			} else {
-				setAction(attacked, getAnimationIndex(attacked, "Hurt"));
-			}
+				death = true;
+			} 
+		}
+
+		if (death){
+			setAction(attacked, getAnimationIndex(attacked, "Death"));
+			setAction(attacking, getAnimationIndex(attacking, "Finishing"));
+			activeAction[attacked].loop = THREE.LoopOnce;
 		} else {
 			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
+			setAction(attacking, getAnimationIndex(attacking, "Attack"));
 		}
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";

@@ -4,7 +4,6 @@ import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.j
 import * as SHAKING from "/shaking.js"
 
 const HIT_TEXT_COLOR = "Red";
-const TIME_FOR_HIT = 7;
 
 const SINGLE_ANIMATIONS = [
 	"Idle", "Walking", "Death", "Run",
@@ -62,6 +61,7 @@ function main() {
 	let currentAttackedCharacter = -1;
 
 	let timeCurrentHitRemaining = 0;
+	let timeCurrentHitGoal = 0;
 
 	// Loading all resources
 		
@@ -238,17 +238,19 @@ function main() {
 			timeCurrentHitRemaining += delta;
 			
 			if (timeCurrentHitRemaining >= activeAction[currentCharacterAttacking].getClip().duration 
-			&& activeAction[currentCharacterAttacking] != animationActions[currentCharacterAttacking][getAnimationIndex(currentCharacterAttacking, "Finishing")]){
+				&& (activeAction[currentCharacterAttacking] != animationActions[currentCharacterAttacking][getAnimationIndex(currentCharacterAttacking, "Finishing")]
+					|| activeAction[currentCharacterAttacking] != animationActions[currentCharacterAttacking][getAnimationIndex(currentCharacterAttacking, "Attack")])){
 				setAction(currentCharacterAttacking, getAnimationIndex(currentCharacterAttacking, "Idle"));
-			}
+			} 
 
-			if (timeCurrentHitRemaining >= TIME_FOR_HIT){
+			if (timeCurrentHitRemaining >= timeCurrentHitGoal){
 				currentAttackedCharacter = -1;
 				currentCharacterAttacking = -1;
 			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].style.color != "white") {
 				charactersLifeText[currentAttackedCharacter].style.color = "white";
 			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
-				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]){
+				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]
+				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Death")]){
 				console.log(getAnimationIndex(currentAttackedCharacter, "Run") + " " + getAnimationIndex(currentAttackedCharacter, "Idle"));
 				setAction(currentAttackedCharacter, getAnimationIndex(currentAttackedCharacter, "Idle"));
 			}
@@ -326,10 +328,13 @@ function main() {
 			setAction(attacked, getAnimationIndex(attacked, "Death"));
 			setAction(attacking, getAnimationIndex(attacking, "Finishing"));
 			activeAction[attacked].loop = THREE.LoopOnce;
+
 		} else {
 			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
 			setAction(attacking, getAnimationIndex(attacking, "Attack"));
 		}
+
+		timeCurrentHitGoal = Math.max(activeAction[currentCharacterAttacking].getClip().duration, activeAction[currentAttackedCharacter].getClip().duration) + 0.1;
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
 		charactersLifeText[attacked].style.color = HIT_TEXT_COLOR;

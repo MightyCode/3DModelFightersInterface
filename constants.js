@@ -1,9 +1,9 @@
 const CameraData = {
 	"fov" : 90,
-	"aspect" : window.innerWidth / window.innerHeight,
+	"aspect" : 1080 / 1920,
 	"near" : 0.1,
 	"far" : 100,
-	"position" : [0, 100, 0],
+	"position" : [0, 150, 0],
 	"orientation" : [-0.2, 0, 0]
 }
 
@@ -30,8 +30,8 @@ const CharactersData = [
 		"iconScale" : 40
 	}, {
 		"filliere" : "elec",
-		"fileName" : "Mario",
-		"scale" : [MODEL_SCALING, MODEL_SCALING, MODEL_SCALING],
+		"fileName" : "Mewtwo",
+		"scale" : [MODEL_SCALING * 0.5, MODEL_SCALING * 0.5, MODEL_SCALING * 0.5],
 		"position" : [0 * SCALING[0], 1.5 * SCALING[1], -2 * SCALING[2]],
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
@@ -40,8 +40,8 @@ const CharactersData = [
 		"iconScale" : 40
 	}, {
 		"filliere" : "info",
-		"fileName" : "Mario",
-		"scale" : [MODEL_SCALING, MODEL_SCALING, MODEL_SCALING],
+		"fileName" : "Link",
+		"scale" : [MODEL_SCALING * 0.5, MODEL_SCALING * 0.5, MODEL_SCALING * 0.5],
 		"position" : [3 * SCALING[0], 1.5 * SCALING[1], -2 * SCALING[2]],
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
@@ -50,8 +50,8 @@ const CharactersData = [
 		"iconScale" : 40
 	}, {
 		"filliere" : "telecom",
-		"fileName" : "Mario",
-		"scale" : [MODEL_SCALING, MODEL_SCALING, MODEL_SCALING],
+		"fileName" : "Pac-man",
+		"scale" : [MODEL_SCALING * 0.5, MODEL_SCALING * 0.5, MODEL_SCALING * 0.5],
 		"position" : [-3 * SCALING[0], -1.5 * SCALING[1], -2 * SCALING[2]],
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
@@ -60,8 +60,8 @@ const CharactersData = [
 		"iconScale" : 40
 	}, {
 		"filliere" : "rsi",
-		"fileName" : "Mario",
-		"scale" : [MODEL_SCALING, MODEL_SCALING, MODEL_SCALING],
+		"fileName" : "Sonic",
+		"scale" : [MODEL_SCALING * 0.66, MODEL_SCALING * 0.66, MODEL_SCALING * 0.66],
 		"position" : [0 * SCALING[0], -1.5 * SCALING[1], -2 * SCALING[2]],
 		"orientation" : [0, 0, 0],
 		"AttackNumber" : 2,
@@ -70,8 +70,8 @@ const CharactersData = [
 		"iconScale" : 40
 	}, {
 		"filliere" : "see",
-		"fileName" : "Mario",
-		"scale" : [MODEL_SCALING, MODEL_SCALING, MODEL_SCALING],
+		"fileName" : "Kirby",
+		"scale" : [MODEL_SCALING * 0.5, MODEL_SCALING * 0.5, MODEL_SCALING * 0.5],
 		"position" : [3 * SCALING[0], -1.5 * SCALING[1], -2 * SCALING[2]],
 		"orientation" : [0, -0, 0],
 		"AttackNumber" : 2,

@@ -6,15 +6,13 @@ import * as SHAKING from "/shaking.js"
 const HIT_TEXT_COLOR = "Red";
 
 const SINGLE_ANIMATIONS = [
-	"Idle", "Walking", "Death", "Run",
+	"Idle", /*"Walking",*/ "Death", /*"Run",*/
 	"Finishing"
 ]
 
 const MULTIPLE_ANIMATIONS = [
 	"Attack", "Hurt"
 ]
-
-const loadingQueue = [];
 
 function main() {
     const canvas = document.querySelector('#c');
@@ -38,8 +36,15 @@ function main() {
 
     const scene = new THREE.Scene();
 
-	let light = new THREE.AmbientLight(0x404040);
-	light.intensity = 5;
+	let light = new THREE.AmbientLight(0xf2ecd3);
+	light.intensity = 1;
+	scene.add(light);
+	
+	light = new THREE.DirectionalLight(0x404040);
+	light.intensity = 5.5;
+	light.position.x = 0;
+	light.position.y = 500;
+	light.position.z = 50;
 
 	scene.add(light);
 
@@ -67,6 +72,26 @@ function main() {
 		
 	const textureLoader = new THREE.TextureLoader();
     const fbxLoader = new FBXLoader();
+
+	let animationToLoadRemaining = 0;
+
+	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
+		characterMixers.push("");
+		animationActions.push([]);
+		activeAction.push("");
+		lastAction.push("");
+
+		const characterValues = CONSTANTS.CharactersData[characterIndex];
+
+		animationToLoadRemaining += SINGLE_ANIMATIONS.length;
+
+		for (let index in MULTIPLE_ANIMATIONS){
+			animationToLoadRemaining += characterValues[MULTIPLE_ANIMATIONS[index] + "Number"];
+		}
+	}
+
+	console.log("NUmber model to load = " + animationToLoadRemaining);
+
 
 	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
 		const characterValues = CONSTANTS.CharactersData[characterIndex];
@@ -102,12 +127,12 @@ function main() {
 		fbxLoader.load(
 			'/resources/' + characterValues["fileName"]  + '/Idle.fbx',
 			(object) => {
-				object.traverse( function ( child ) {
+				/*object.traverse( function ( child ) {
 					if ( child.isMesh ) {
 						child.castShadow = true;
 						child.receiveShadow = true;
 					}
-				} );
+				} );*/
 				
 				console.log("Character number : " + characterIndex + ", scale : " + characterValues["scale"] 
 					+ ", position : " + characterValues["position"]);
@@ -118,17 +143,18 @@ function main() {
 
 				const currentMixer = new THREE.AnimationMixer(object);
 
-				characterMixers.push(currentMixer);
+				characterMixers[characterIndex] = currentMixer;
 
 				const idleAction = currentMixer.clipAction(object.animations[0]);
+				console.log(object.animations.length);
 				idleAction.timeScale = 0.9 + Math.random() * 0.2;
 				idleAction.play();
 	
 				scene.add(object);
 
-				animationActions.push([idleAction]);
-				activeAction.push(idleAction);
-				lastAction.push(idleAction);
+				animationActions[characterIndex] = [idleAction];
+				activeAction[characterIndex] = idleAction;
+				lastAction[characterIndex] = idleAction;
 
 				
 				let animationsName = [...SINGLE_ANIMATIONS];
@@ -150,7 +176,7 @@ function main() {
 					fbxLoader.load(
 						'/resources/' + characterValues["fileName"]  + '/' + animation + '.fbx',
 						(object_in) => {
-							console.log("Loading " + animation);
+							console.log("Loading " + animation + " for " +  characterValues["fileName"] + " remaining " + (animationToLoadRemaining - 1));
 							
 							const tempAnimation = currentMixer.clipAction(object_in.animations[0]);
 							if (animation == "Death"){
@@ -159,6 +185,11 @@ function main() {
 							}
 							
 							animationActions[characterIndex][animationsName.indexOf(animation) + 1] = tempAnimation;
+
+							--animationToLoadRemaining;
+							if (animationToLoadRemaining == 0){
+								requestAnimationFrame(render);
+							}
 						},
 						(xhr_in) => {
 							//console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
@@ -167,11 +198,10 @@ function main() {
 							console.log(error_in);
 					});
 				}
-				
 
-				if (characterIndex == CONSTANTS.CharactersNumber - 1){
+				animationToLoadRemaining -= 1;
+				if (animationToLoadRemaining == 0)
 					modelsReady = true;
-				}
 			},
 			(xhr) => {
 				//console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -193,7 +223,7 @@ function main() {
 			var mesh = new THREE.Mesh(geometry, material);
 
 			mesh.position.set(
-				characterValues["position"][0] + i * 50 + 60, characterValues["position"][1] * 1.01 - 16, -50);
+				characterValues["position"][0] + i * 50 + 60, characterValues["position"][1] * 1.01 + 16, -50);
 	
 			// add the image to the scene
 			scene.add(mesh);
@@ -206,7 +236,7 @@ function main() {
 
 	function getPositionForLife(characterPosition){
 		return [window.innerWidth * 0.5 - characterPosition[0] - 20,
-				window.innerHeight * 0.5 - characterPosition[1] + 80 ];
+				window.innerHeight * 0.5 - characterPosition[1] + 100 ];
 	}
 	
     function resizeRendererToDisplaySize(renderer) {
@@ -256,12 +286,9 @@ function main() {
 			}
 		}
 
-		if (modelsReady){
-			for (let i = 0; i < CONSTANTS.CharactersNumber; ++i){
-				characterMixers[i].update(delta);
-			}
-		} else 
-        	console.log("Model not ready");
+		for (let i = 0; i < CONSTANTS.CharactersNumber; ++i){
+			characterMixers[i].update(delta);
+		}
 
       	renderer.render(scene, camera);
 
@@ -386,8 +413,6 @@ function main() {
 	document.addEventListener('keypress', (event) => {
 		parseKey(event.key, event.code);
 	}, false);
-
-    requestAnimationFrame(render);
 }
 
 main();

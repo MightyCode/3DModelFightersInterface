@@ -8,7 +8,7 @@ var Shaking = function (element, magnitude = 16, angular = false) {
     var counter = 1;
   
     //The total number of shakes (there will be 1 shake per frame)
-    var numberOfShakes = 15;
+    var numberOfShakes = 30;
   
     //Capture the element's position and angle so you can
     //restore them after the shaking has finished

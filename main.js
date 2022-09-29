@@ -6,7 +6,7 @@ import * as SHAKING from "/shaking.js"
 const HIT_TEXT_COLOR = "Red";
 
 const SINGLE_ANIMATIONS = [
-	"Idle", /*"Walking",*/ "Death", /*"Run",*/
+	"Idle", "Walking", "Death", /*"Run",*/
 	"Finishing"
 ]
 
@@ -16,8 +16,8 @@ const MULTIPLE_ANIMATIONS = [
 
 function main() {
     const canvas = document.querySelector('#c');
-    const renderer = new THREE.WebGLRenderer({canvas});
-
+    const renderer = new THREE.WebGLRenderer({canvas, alpha: true });
+	
     /*const camera = new THREE.PerspectiveCamera(
 		CONSTANTS.CameraData["fov"], 
 		CONSTANTS.CameraData["aspect"], 
@@ -53,8 +53,6 @@ function main() {
     let activeAction = [];
     let lastAction = [];
 
-	let modelsReady = false;
-
 	let characterLifeIcon = [];
 
 	let charactersLifeText = [];
@@ -71,6 +69,9 @@ function main() {
 	// Loading all resources
 		
 	const textureLoader = new THREE.TextureLoader();
+
+	//const background = textureLoader.load("/resources/background.png")
+
     const fbxLoader = new FBXLoader();
 
 	let animationToLoadRemaining = 0;
@@ -90,7 +91,27 @@ function main() {
 		}
 	}
 
-	console.log("NUmber model to load = " + animationToLoadRemaining);
+	//console.log("NUmber model to load = " + animationToLoadRemaining);
+
+	let text = document.createElement('div');
+	text.style.position = 'absolute';
+	text.style.width = 400;
+	text.style.height = 400;
+	text.style.color = "white";
+	text.style.backgroundColor = "#000000bf";
+	// bf :-)
+
+
+	text.style.fontSize = "30px";
+	text.style.left = 10 + 'px';
+	text.style.bottom = 10 + 'px';
+
+	text.style.textAlign = "left";
+	text.style.verticalAlign = "bottom";
+	text.innerHTML = "Game made by MightyCode(Bazin Maxence)";
+	text.classList.add("not-selectable");
+
+	document.body.appendChild(text);
 
 
 	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
@@ -99,7 +120,7 @@ function main() {
 		const path = "/resources/" + characterValues["fileName"];
 
 		for (let index in characterValues["textures"]){
-			console.log("Loading " + path + "/" + characterValues["textures"][index]);
+			//console.log("Loading " + path + "/" + characterValues["textures"][index]);
 			const texture = textureLoader.load(path + "/" + characterValues["textures"][index]);
 			texture.wrapS = THREE.RepeatWrapping;
 			texture.wrapT = THREE.RepeatWrapping;
@@ -112,12 +133,13 @@ function main() {
 		text.style.width = 400;
 		text.style.height = 400;
 		text.style.color = "white";
-		text.style.fontSize = "40px";
+		text.style.fontSize = "50px";
 		let textPosition = getPositionForLife(characterValues["position"]);
 		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
 		text.style.textAlign = "left";
 		text.innerHTML = "0 %";
+		text.style.textShadow = "2px 2px 4px black" 
 		text.classList.add("not-selectable");
 
 		document.body.appendChild(text);
@@ -134,8 +156,8 @@ function main() {
 					}
 				} );*/
 				
-				console.log("Character number : " + characterIndex + ", scale : " + characterValues["scale"] 
-					+ ", position : " + characterValues["position"]);
+				/*console.log("Character number : " + characterIndex + ", scale : " + characterValues["scale"] 
+					+ ", position : " + characterValues["position"]);*/
 
 				object.scale.set(characterValues["scale"][0], characterValues["scale"][1], characterValues["scale"][2]);
 				object.position.set(characterValues["position"][0], characterValues["position"][1], characterValues["position"][2]);
@@ -146,7 +168,6 @@ function main() {
 				characterMixers[characterIndex] = currentMixer;
 
 				const idleAction = currentMixer.clipAction(object.animations[0]);
-				console.log(object.animations.length);
 				idleAction.timeScale = 0.9 + Math.random() * 0.2;
 				idleAction.play();
 	
@@ -176,7 +197,7 @@ function main() {
 					fbxLoader.load(
 						'/resources/' + characterValues["fileName"]  + '/' + animation + '.fbx',
 						(object_in) => {
-							console.log("Loading " + animation + " for " +  characterValues["fileName"] + " remaining " + (animationToLoadRemaining - 1));
+							//console.log("Loading " + animation + " for " +  characterValues["fileName"] + " remaining " + (animationToLoadRemaining - 1));
 							
 							const tempAnimation = currentMixer.clipAction(object_in.animations[0]);
 							if (animation == "Death"){
@@ -195,7 +216,7 @@ function main() {
 							//console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
 						},
 						(error_in) => {
-							console.log(error_in);
+							//console.log(error_in);
 					});
 				}
 
@@ -207,7 +228,7 @@ function main() {
 				//console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
 			},
 			(error) => {
-				console.log(error);
+				//console.log(error);
 			}
 		);
 
@@ -223,7 +244,7 @@ function main() {
 			var mesh = new THREE.Mesh(geometry, material);
 
 			mesh.position.set(
-				characterValues["position"][0] + i * 50 + 60, characterValues["position"][1] * 1.01 + 16, -50);
+				characterValues["position"][0] + i * (characterValues["iconScale"] * 1.1) - 80, characterValues["position"][1] * 1.01 -50, -50);
 	
 			// add the image to the scene
 			scene.add(mesh);
@@ -235,8 +256,8 @@ function main() {
 	}
 
 	function getPositionForLife(characterPosition){
-		return [window.innerWidth * 0.5 - characterPosition[0] - 20,
-				window.innerHeight * 0.5 - characterPosition[1] + 100 ];
+		return [window.innerWidth * 0.5 - characterPosition[0] - 40,
+				window.innerHeight * 0.5 - characterPosition[1] + 100];
 	}
 	
     function resizeRendererToDisplaySize(renderer) {
@@ -281,7 +302,7 @@ function main() {
 			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Death")]){
-				console.log(getAnimationIndex(currentAttackedCharacter, "Run") + " " + getAnimationIndex(currentAttackedCharacter, "Idle"));
+				//console.log(getAnimationIndex(currentAttackedCharacter, "Run") + " " + getAnimationIndex(currentAttackedCharacter, "Idle"));
 				setAction(currentAttackedCharacter, getAnimationIndex(currentAttackedCharacter, "Idle"));
 			}
 		}
@@ -322,7 +343,7 @@ function main() {
 				startIndex += CONSTANTS.CharactersData[character][MULTIPLE_ANIMATIONS[i] + "Number"]
 			}
 
-			console.log(SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]));
+			//console.log(SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]));
 			
 			return SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]);
 		}
@@ -385,6 +406,8 @@ function main() {
 	
 	function parseKey(key, code){
 		if (code === "Space"){
+			setAction(currentCharacterAttacking, getAnimationIndex(currentCharacterAttacking, "Idle"));
+
 			currentCharacterAttacking = -1;
 			return;
 		} 
@@ -399,6 +422,9 @@ function main() {
 
 			currentCharacterAttacking = index;
 			charactersLifeText[index].style.fontWeight = "bold";
+
+			setAction(currentCharacterAttacking, getAnimationIndex(currentCharacterAttacking, "Walking"));
+
 		} else if (currentAttackedCharacter === -1){
 			if (characterCurrentLife[index] <= 0)
 				return;

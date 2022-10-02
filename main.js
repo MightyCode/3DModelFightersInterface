@@ -3,8 +3,6 @@ import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
 import * as SHAKING from "/shaking.js"
 
-const HIT_TEXT_COLOR = "Red";
-
 const SINGLE_ANIMATIONS = [
 	"Idle", "Walking", "Death", /*"Run",*/
 	"Finishing"
@@ -94,22 +92,10 @@ function main() {
 	//console.log("NUmber model to load = " + animationToLoadRemaining);
 
 	let text = document.createElement('div');
-	text.style.position = 'absolute';
-	text.style.width = 400;
-	text.style.height = 400;
-	text.style.color = "white";
-	text.style.backgroundColor = "#000000bf";
-	// bf :-)
-
-
-	text.style.fontSize = "30px";
-	text.style.left = 10 + 'px';
-	text.style.bottom = 10 + 'px';
-
-	text.style.textAlign = "left";
-	text.style.verticalAlign = "bottom";
-	text.innerHTML = "Game made by MightyCode(Bazin Maxence)";
+	text.classList.add("text");
 	text.classList.add("not-selectable");
+	text.setAttribute("id", "mightycode");
+	text.innerHTML = "Game made by MightyCode(Bazin Maxence)";
 
 	document.body.appendChild(text);
 
@@ -129,18 +115,16 @@ function main() {
 
 		
 		let text = document.createElement('div');
-		text.style.position = 'absolute';
-		text.style.width = 400;
-		text.style.height = 400;
-		text.style.color = "white";
-		text.style.fontSize = "50px";
+		text.classList.add("text");
+		text.classList.add("life");
+		text.classList.add("not-selectable");
+		
+
 		let textPosition = getPositionForLife(characterValues["position"]);
 		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
-		text.style.textAlign = "left";
+
 		text.innerHTML = "0 %";
-		text.style.textShadow = "2px 2px 4px black" 
-		text.classList.add("not-selectable");
 
 		document.body.appendChild(text);
 		
@@ -149,12 +133,12 @@ function main() {
 		fbxLoader.load(
 			'/resources/' + characterValues["fileName"]  + '/Idle.fbx',
 			(object) => {
-				/*object.traverse( function ( child ) {
+				object.traverse( function ( child ) {
 					if ( child.isMesh ) {
 						child.castShadow = true;
 						child.receiveShadow = true;
 					}
-				} );*/
+				} );
 				
 				/*console.log("Character number : " + characterIndex + ", scale : " + characterValues["scale"] 
 					+ ", position : " + characterValues["position"]);*/
@@ -256,8 +240,8 @@ function main() {
 	}
 
 	function getPositionForLife(characterPosition){
-		return [window.innerWidth * 0.5 - characterPosition[0] - 40,
-				window.innerHeight * 0.5 - characterPosition[1] + 100];
+		return [window.innerWidth * 0.5 - characterPosition[0] - 35,
+				window.innerHeight * 0.5 - characterPosition[1] + 85];
 	}
 	
     function resizeRendererToDisplaySize(renderer) {
@@ -297,8 +281,8 @@ function main() {
 			if (timeCurrentHitRemaining >= timeCurrentHitGoal){
 				currentAttackedCharacter = -1;
 				currentCharacterAttacking = -1;
-			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].style.color != "white") {
-				charactersLifeText[currentAttackedCharacter].style.color = "white";
+			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].classList.contains("characterHitText")) {
+				charactersLifeText[currentAttackedCharacter].classList.remove("characterHitText");
 			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Death")]){
@@ -385,7 +369,7 @@ function main() {
 		timeCurrentHitGoal = Math.max(activeAction[currentCharacterAttacking].getClip().duration, activeAction[currentAttackedCharacter].getClip().duration) + 0.1;
 
 		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
-		charactersLifeText[attacked].style.color = HIT_TEXT_COLOR;
+		charactersLifeText[attacked].classList.add("characterHitText");
 
 		SHAKING.Shaking(charactersLifeText[attacked]);
 		
@@ -421,7 +405,7 @@ function main() {
 				return;
 
 			currentCharacterAttacking = index;
-			charactersLifeText[index].style.fontWeight = "bold";
+			charactersLifeText[index].classList.add("characterSelectedText");
 
 			setAction(currentCharacterAttacking, getAnimationIndex(currentCharacterAttacking, "Walking"));
 
@@ -432,7 +416,7 @@ function main() {
 			currentAttackedCharacter = index;
 			characterAttack(currentCharacterAttacking, index);
 
-			charactersLifeText[currentCharacterAttacking].style.fontWeight = "normal";
+			charactersLifeText[currentCharacterAttacking].classList.remove("characterSelectedText");
 		}
 	}
 

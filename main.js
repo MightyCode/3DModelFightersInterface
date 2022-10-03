@@ -92,6 +92,14 @@ const main = (arg = []) => {
 		for (let index in MULTIPLE_ANIMATIONS){
 			animationToLoadRemaining += characterValues[MULTIPLE_ANIMATIONS[index] + "Number"];
 		}
+
+		if (arg.length > characterIndex){
+			characterCurrentLife.push(Math.floor(arg[characterIndex]));
+			characterDamageTaken.push((arg[characterIndex] * 100 - Math.floor(arg[characterIndex])  * 100).toFixed(2));
+		} else {
+			characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
+			characterDamageTaken.push(0);
+		}
 	}
 
 	//console.log("NUmber model to load = " + animationToLoadRemaining);
@@ -129,7 +137,7 @@ const main = (arg = []) => {
 		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
 
-		text.innerHTML = "0 %";
+		text.innerHTML = characterDamageTaken[characterIndex] + " %";
 
 		document.body.appendChild(text);
 		
@@ -218,7 +226,7 @@ const main = (arg = []) => {
 		});
 		var geometry = new THREE.PlaneGeometry(characterValues["iconScale"], characterValues["iconScale"]);
 
-		for (let i = 0; i < CONSTANTS.GameData["numberLife"]; ++i){
+		for (let i = 0; i < characterCurrentLife[characterIndex]; ++i){
 			var mesh = new THREE.Mesh(geometry, material);
 
 			mesh.position.set(
@@ -228,9 +236,6 @@ const main = (arg = []) => {
 			scene.add(mesh);
 			characterLifeIcon[characterIndex].push(mesh);
 		}
-
-		characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
-		characterDamageTaken.push(0);
 	}
 
 	function getPositionForLife(characterPosition){
@@ -333,8 +338,6 @@ const main = (arg = []) => {
 			for (let i = 0; i < MULTIPLE_ANIMATIONS.indexOf(type); ++i){
 				startIndex += CONSTANTS.CharactersData[character][MULTIPLE_ANIMATIONS[i] + "Number"]
 			}
-
-			//console.log(SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]));
 			
 			return SINGLE_ANIMATIONS.length + startIndex + getRandomInt(CONSTANTS.CharactersData[character][type + "Number"]);
 		}
@@ -471,7 +474,6 @@ const main = (arg = []) => {
 
 	const chain = (chain) => {
 		list_attack = list_attack.concat(chain);
-		console.log(list_attack);
 
 		if (currentAttackedCharacter == -1){
 			coefficient = list_attack[0][2];
@@ -480,10 +482,20 @@ const main = (arg = []) => {
 		}
 	};
 
+	const send = () => {
+		const result = [...characterCurrentLife];
+
+		for (let characterIndex = 0; characterIndex < characterCurrentLife.length; ++characterIndex){
+			console.log((characterDamageTaken[characterIndex] / 100).toFixed(4));
+			result[characterIndex] = result[characterIndex] + parseFloat((characterDamageTaken[characterIndex] / 100).toFixed(4));
+		}
+
+		return result;
+	};
+
 	window.chain = chain;
+	window.send = send;
 }
 
 
 window.main = main;
-
-main();

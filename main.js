@@ -11,7 +11,7 @@ const MULTIPLE_ANIMATIONS = [
 	"Attack", "Hurt"
 ]
 
-function main() {
+const main = (arg = []) => {
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({canvas, alpha: true });
 	const logo = document.getElementById("logo");
@@ -63,6 +63,11 @@ function main() {
 
 	let timeCurrentHitRemaining = 0;
 	let timeCurrentHitGoal = 0;
+
+	let phantom = false;
+
+	let list_attack = [];
+	let coefficient = 1;
 
 	// Loading all resources
 		
@@ -195,24 +200,13 @@ function main() {
 							if (animationToLoadRemaining == 0){
 								requestAnimationFrame(render);
 							}
-						},
-						(xhr_in) => {
-							//console.log((xhr_in.loaded / xhr_in.total) * 100 + '% loaded');
-						},
-						(error_in) => {
-							//console.log(error_in);
-					});
+						}
+					);
 				}
 
 				animationToLoadRemaining -= 1;
 				if (animationToLoadRemaining == 0)
 					modelsReady = true;
-			},
-			(xhr) => {
-				//console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-			},
-			(error) => {
-				//console.log(error);
 			}
 		);
 
@@ -281,6 +275,17 @@ function main() {
 			if (timeCurrentHitRemaining >= timeCurrentHitGoal){
 				currentAttackedCharacter = -1;
 				currentCharacterAttacking = -1;
+
+				
+				// CHAIN ATTACKs
+				list_attack.splice(0, 1);
+				console.log(list_attack);
+				if (list_attack.length > 0){
+					coefficient = list_attack[0][2];
+					parseKey(list_attack[0][0], "key");
+					parseKey(list_attack[0][1], "key");
+				}
+
 			} else if (timeCurrentHitRemaining >= 0.5 && charactersLifeText[currentAttackedCharacter].classList.contains("characterHitText")) {
 				charactersLifeText[currentAttackedCharacter].classList.remove("characterHitText");
 				logo.classList.remove("red");
@@ -351,7 +356,7 @@ function main() {
 		if (attacking === attacked)
 			return;
 
-		characterDamageTaken[attacked] += CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"];
+		characterDamageTaken[attacked] += (CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"]) * coefficient;
 		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(1));
 
 		let death = false;
@@ -377,6 +382,27 @@ function main() {
 
 			charactersLifeText[currentAttackedCharacter].innerHTML = "dead";
 			charactersLifeText[currentAttackedCharacter].classList.add("textDead");
+			
+			if (!phantom){
+				var material = new THREE.MeshLambertMaterial({
+					map: textureLoader.load('/resources/phantom.png'),
+					transparent: true
+				});
+				var geometry = new THREE.PlaneGeometry(50, 50);
+	
+				var mesh = new THREE.Mesh(geometry, material);
+	
+				mesh.position.set(
+					CONSTANTS.CharactersData[currentAttackedCharacter]["position"][0] + 
+							(CONSTANTS.CharactersData[currentAttackedCharacter]["iconScale"] * 1.1) - 80,
+							CONSTANTS.CharactersData[currentAttackedCharacter]["position"][1] * 1.01 -50, -50);
+		
+				// add the image to the scene
+				scene.add(mesh);
+
+				phantom = true;
+			}
+
 
 		} else {
 			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
@@ -442,6 +468,22 @@ function main() {
 	document.addEventListener('keypress', (event) => {
 		parseKey(event.key, event.code);
 	}, false);
+
+	const chain = (chain) => {
+		list_attack = list_attack.concat(chain);
+		console.log(list_attack);
+
+		if (currentAttackedCharacter == -1){
+			coefficient = list_attack[0][2];
+			parseKey(list_attack[0][0], "key");
+			parseKey(list_attack[0][1], "key");
+		}
+	};
+
+	window.chain = chain;
 }
+
+
+window.main = main;
 
 main();

@@ -13,7 +13,7 @@ const SCALING = [200, -20, 300];
 
 const GameData = {
 	"fonts" : "helvetiker_regular.typeface.json",
-	"damage" : 50,
+	"damage" : 200,
 	"numberLife" : 3
 }
 

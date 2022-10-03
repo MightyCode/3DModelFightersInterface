@@ -1,7 +1,6 @@
 import * as THREE from '/librairies/threejs/three.module.js';
 import * as CONSTANTS from '/constants.js';
 import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
-import * as SHAKING from "/shaking.js"
 
 const SINGLE_ANIMATIONS = [
 	"Idle", "Walking", "Death", /*"Run",*/
@@ -15,6 +14,7 @@ const MULTIPLE_ANIMATIONS = [
 function main() {
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({canvas, alpha: true });
+	const logo = document.getElementById("logo");
 	
     /*const camera = new THREE.PerspectiveCamera(
 		CONSTANTS.CameraData["fov"], 
@@ -281,8 +281,10 @@ function main() {
 			if (timeCurrentHitRemaining >= timeCurrentHitGoal){
 				currentAttackedCharacter = -1;
 				currentCharacterAttacking = -1;
-			} else if (timeCurrentHitRemaining >= 0.3 && charactersLifeText[currentAttackedCharacter].classList.contains("characterHitText")) {
+			} else if (timeCurrentHitRemaining >= 0.5 && charactersLifeText[currentAttackedCharacter].classList.contains("characterHitText")) {
 				charactersLifeText[currentAttackedCharacter].classList.remove("characterHitText");
+				logo.classList.remove("red");
+
 			} else if (timeCurrentHitRemaining >= activeAction[currentAttackedCharacter].getClip().duration 
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Finishing")]
 				&& activeAction[currentAttackedCharacter] != animationActions[currentAttackedCharacter][getAnimationIndex(currentAttackedCharacter, "Death")]){
@@ -335,6 +337,16 @@ function main() {
 		return 0;
 	}
 
+	function looseLife(){
+		charactersLifeText[currentAttackedCharacter].classList.add("fadeIn");
+
+		setTimeout(()=> 
+			{
+				charactersLifeText[currentAttackedCharacter].classList.remove("fadeIn");
+			}, 
+			550);
+	}
+
 	function characterAttack(attacking, attacked){
 		if (attacking === attacked)
 			return;
@@ -347,6 +359,8 @@ function main() {
 		if (characterDamageTaken[attacked] >= 100){
 			characterDamageTaken[attacked] = 0;
 			characterCurrentLife[attacked] -= 1;
+
+			looseLife();
 
 			scene.remove(characterLifeIcon[attacked][characterCurrentLife[attacked]]);
 			characterLifeIcon[attacked].splice(-1);
@@ -361,17 +375,22 @@ function main() {
 			setAction(attacking, getAnimationIndex(attacking, "Finishing"));
 			activeAction[attacked].loop = THREE.LoopOnce;
 
+			charactersLifeText[currentAttackedCharacter].innerHTML = "dead";
+			charactersLifeText[currentAttackedCharacter].classList.add("textDead");
+
 		} else {
 			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
 			setAction(attacking, getAnimationIndex(attacking, "Attack"));
+
+			
+			charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
+			charactersLifeText[attacked].classList.add("characterHitText");
+
+			logo.classList.add("red");
 		}
 
 		timeCurrentHitGoal = Math.max(activeAction[currentCharacterAttacking].getClip().duration, activeAction[currentAttackedCharacter].getClip().duration) + 0.1;
 
-		charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
-		charactersLifeText[attacked].classList.add("characterHitText");
-
-		SHAKING.Shaking(charactersLifeText[attacked]);
 		
 		timeCurrentHitRemaining = 0;
 	}

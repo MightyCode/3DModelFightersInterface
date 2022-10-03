@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
 }
@@ -7,7 +8,8 @@ html, body {
   width: 100%;
   height: 100%;
   position: absolute;
-  top: 0px; left: 0px;
+  top: 0px;
+  left: 0px;
 }
 
 .not-selectable {
@@ -18,37 +20,38 @@ html, body {
   -ms-user-select: none;
   user-select: none;
 }
-  
+
 .video {
   position: absolute;
-  top: 0px; left: 0px;
+  top: 0px;
+  left: 0px;
 }
 
-.text{
+.text {
   position: absolute;
   width: 400;
   height: 400;
   color: white;
 }
 
-.life{
+.life {
   font-size: 50px;
   font-family: Impact;
-  font-size: italic;
+  font-style: italic;
 
-  text-align:  left;
-  text-shadow: black 1px 1px 0px, black 2px 2px 0px, black 3px 3px 0px, black 4px 4px 0px, black 5px 5px 0px; 
+  text-align: left;
+  text-shadow: black 1px 1px 0px, black 2px 2px 0px, black 3px 3px 0px, black 4px 4px 0px, black 5px 5px 0px;
 }
 
-#mightycode{
+#mightycode {
   background-color: #000000bf;
 
   font-size: 30px;
-  left : 10px;
-	bottom : 10px;
+  left: 10px;
+  bottom: 10px;
 
-	text-align: "left";
-	vertical-align: "bottom";
+  text-align: "left";
+  vertical-align: "bottom";
 }
 
 
@@ -57,5 +60,124 @@ html, body {
 }
 
 .characterHitText {
-  color : red;
+  color: red;
+  animation: shake2 0.3s cubic-bezier(.36, .07, .19, .97) both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes shake2 {
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+#logo {
+  position: absolute;
+  vertical-align: center;
+  left: 50%;
+  width: 50%;
+  top: 3%;
+  transform: translate(-50%, 0%);
+  filter: drop-shadow(black 4px 4px 3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+#logo img {
+  width: 100%;
+}
+
+#logo.red {
+  filter: drop-shadow(black 4px 4px 3px) invert(21%) sepia(99%) saturate(6426%) hue-rotate(0deg) brightness(105%) contrast(125%);
+}
+
+#logo.red img {
+  animation: shake 0.5s;
+
+  /* When the animation is finished, start again */
+  animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
+
+.fadeIn {
+  animation: spanFadeIn 500ms ease forwards;
+  transform: translateY(150%);
+  opacity: 0;
+}
+
+@keyframes spanFadeIn {
+  0% {
+    transform: translateY(150%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

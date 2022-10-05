@@ -1,6 +1,6 @@
 import * as THREE from '/librairies/threejs/three.module.js';
 import * as CONSTANTS from '/constants.js';
-import { FBXLoader  } from '/librairies/threejs/examples/jsm/loaders/FBXLoader.js';
+import { FBXLoader  } from '/librairies/threejs/FBXLoader.js';
 
 const SINGLE_ANIMATIONS = [
 	"Idle", "Walking", "Death", /*"Run",*/
@@ -98,7 +98,7 @@ const main = (arg = []) => {
 			characterDamageTaken.push((arg[characterIndex] * 100 - Math.floor(arg[characterIndex])  * 100).toFixed(2));
 		} else {
 			characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
-			characterDamageTaken.push(0);
+			characterDamageTaken.push((0).toFixed(2));
 		}
 	}
 
@@ -111,7 +111,6 @@ const main = (arg = []) => {
 	text.innerHTML = "Game made by MightyCode(Bazin Maxence)";
 
 	document.body.appendChild(text);
-
 
 	for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
 		const characterValues = CONSTANTS.CharactersData[characterIndex];
@@ -205,55 +204,57 @@ const main = (arg = []) => {
 							animationActions[characterIndex][animationsName.indexOf(animation) + 1] = tempAnimation;
 
 							--animationToLoadRemaining;
-							if (animationToLoadRemaining == 0){
-								requestAnimationFrame(render);
-							}
+							if (animationToLoadRemaining == 0)
+								endLoading();
 						}
 					);
 				}
 
 				animationToLoadRemaining -= 1;
 				if (animationToLoadRemaining == 0)
-					modelsReady = true;
+					endLoading();
 			}
 		);
-
-		characterLifeIcon.push([]);
-
-		var material = new THREE.MeshLambertMaterial({
-			map: textureLoader.load('/resources/' + characterValues["fileName"] + "/icon.png"),
-			transparent: true
-		});
-		var geometry = new THREE.PlaneGeometry(characterValues["iconScale"], characterValues["iconScale"]);
-
-		for (let i = 0; i < characterCurrentLife[characterIndex]; ++i){
-			var mesh = new THREE.Mesh(geometry, material);
-
-			mesh.position.set(
-				characterValues["position"][0] + i * (characterValues["iconScale"] * 1.1) - 80, characterValues["position"][1] * 1.01 -50, -50);
-	
-			// add the image to the scene
-			scene.add(mesh);
-			characterLifeIcon[characterIndex].push(mesh);
-		}
 	}
 
 	function getPositionForLife(characterPosition){
 		return [window.innerWidth * 0.5 - characterPosition[0] - 35,
 				window.innerHeight * 0.5 - characterPosition[1] + 85];
 	}
-	
-    function resizeRendererToDisplaySize(renderer) {
-     	const canvas = renderer.domElement;
-     	const width = canvas.clientWidth;
-     	const height = canvas.clientHeight;
-     	const needResize = canvas.width !== width || canvas.height !== height;
-     	if (needResize) {
-     	  	renderer.setSize(width, height, false);
-     	}
 
-     	return needResize;
-    }
+	function endLoading(){
+		requestAnimationFrame(render);
+
+		for (let characterIndex = 0; characterIndex < CONSTANTS.CharactersNumber; ++characterIndex){
+			characterLifeIcon.push([]);
+
+			if (characterCurrentLife[characterIndex] <= 0){
+				setAction(characterIndex, getAnimationIndex(characterIndex, "Death"));
+				if (characterCurrentLife[characterIndex] == -1)
+					addPhantom(characterIndex);
+
+			} else {
+				const characterValues = CONSTANTS.CharactersData[characterIndex];
+
+				var material = new THREE.MeshLambertMaterial({
+					map: textureLoader.load('/resources/' + characterValues["fileName"] + "/icon.png"),
+					transparent: true
+				});
+				var geometry = new THREE.PlaneGeometry(characterValues["iconScale"], characterValues["iconScale"]);
+
+				for (let i = 0; i < characterCurrentLife[characterIndex]; ++i){
+					var mesh = new THREE.Mesh(geometry, material);
+
+					mesh.position.set(
+						characterValues["position"][0] + i * (characterValues["iconScale"] * 1.1) - 80, characterValues["position"][1] * 1.01 -50, -50);
+			
+					// add the image to the scene
+					scene.add(mesh);
+					characterLifeIcon[characterIndex].push(mesh);
+				}
+			}
+		}
+	}
 
     const clock = new THREE.Clock();
 
@@ -266,7 +267,6 @@ const main = (arg = []) => {
     		camera.updateProjectionMatrix();
       	}
     
-
 		// Hit animation
 		if (currentAttackedCharacter != -1){
 			timeCurrentHitRemaining += delta;
@@ -355,6 +355,24 @@ const main = (arg = []) => {
 			550);
 	}
 
+	function addPhantom(characterIndex){
+		var material = new THREE.MeshLambertMaterial({
+			map: textureLoader.load('/resources/phantom.png'),
+			transparent: true
+		});
+		var geometry = new THREE.PlaneGeometry(50, 50);
+
+		var mesh = new THREE.Mesh(geometry, material);
+
+		mesh.position.set(
+			CONSTANTS.CharactersData[characterIndex]["position"][0] + 
+					(CONSTANTS.CharactersData[characterIndex]["iconScale"] * 1.1) - 80,
+					CONSTANTS.CharactersData[characterIndex]["position"][1] * 1.01 -50, -50);
+
+		// add the image to the scene
+		scene.add(mesh);
+	}
+
 	function characterAttack(attacking, attacked){
 		if (attacking === attacked)
 			return;
@@ -387,21 +405,8 @@ const main = (arg = []) => {
 			charactersLifeText[currentAttackedCharacter].classList.add("textDead");
 			
 			if (!phantom){
-				var material = new THREE.MeshLambertMaterial({
-					map: textureLoader.load('/resources/phantom.png'),
-					transparent: true
-				});
-				var geometry = new THREE.PlaneGeometry(50, 50);
-	
-				var mesh = new THREE.Mesh(geometry, material);
-	
-				mesh.position.set(
-					CONSTANTS.CharactersData[currentAttackedCharacter]["position"][0] + 
-							(CONSTANTS.CharactersData[currentAttackedCharacter]["iconScale"] * 1.1) - 80,
-							CONSTANTS.CharactersData[currentAttackedCharacter]["position"][1] * 1.01 -50, -50);
-		
-				// add the image to the scene
-				scene.add(mesh);
+				characterCurrentLife[currentAttackedCharacter] = -1;
+				addPhantom(currentAttackedCharacter);
 
 				phantom = true;
 			}
@@ -419,8 +424,6 @@ const main = (arg = []) => {
 		}
 
 		timeCurrentHitGoal = Math.max(activeAction[currentCharacterAttacking].getClip().duration, activeAction[currentAttackedCharacter].getClip().duration) + 0.1;
-
-		
 		timeCurrentHitRemaining = 0;
 	}
 	
@@ -472,6 +475,18 @@ const main = (arg = []) => {
 		parseKey(event.key, event.code);
 	}, false);
 
+    function resizeRendererToDisplaySize(renderer) {
+		const canvas = renderer.domElement;
+		const width = canvas.clientWidth;
+		const height = canvas.clientHeight;
+		const needResize = canvas.width !== width || canvas.height !== height;
+		if (needResize) {
+			  renderer.setSize(width, height, false);
+		}
+
+		return needResize;
+   }
+
 	const chain = (chain) => {
 		list_attack = list_attack.concat(chain);
 
@@ -497,5 +512,6 @@ const main = (arg = []) => {
 	window.send = send;
 }
 
+main([-1, 1.3, 3.4, 2.1515, 3.2552, 1.7898]);
 
 window.main = main;

@@ -69,6 +69,8 @@ const main = (arg = []) => {
 	let list_attack = [];
 	let coefficient = 1;
 
+	let modelsReady = false;
+
 	// Loading all resources
 		
 	const textureLoader = new THREE.TextureLoader();
@@ -98,7 +100,7 @@ const main = (arg = []) => {
 			characterDamageTaken.push((arg[characterIndex] * 100 - Math.floor(arg[characterIndex])  * 100).toFixed(2));
 		} else {
 			characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
-			characterDamageTaken.push((0).toFixed(2));
+			characterDamageTaken.push(0);
 		}
 	}
 
@@ -254,6 +256,9 @@ const main = (arg = []) => {
 				}
 			}
 		}
+		modelsReady = true;
+
+		submitAttack();
 	}
 
     const clock = new THREE.Clock();
@@ -284,11 +289,8 @@ const main = (arg = []) => {
 				
 				// CHAIN ATTACKs
 				list_attack.splice(0, 1);
-				console.log(list_attack);
 				if (list_attack.length > 0){
-					coefficient = list_attack[0][2];
-					parseKey(list_attack[0][0], "key");
-					parseKey(list_attack[0][1], "key");
+					submitAttack();
 				}
 
 			} else if (timeCurrentHitRemaining >= 0.5 && charactersLifeText[currentAttackedCharacter].classList.contains("characterHitText")) {
@@ -401,16 +403,15 @@ const main = (arg = []) => {
 			setAction(attacking, getAnimationIndex(attacking, "Finishing"));
 			activeAction[attacked].loop = THREE.LoopOnce;
 
-			charactersLifeText[currentAttackedCharacter].innerHTML = "dead";
-			charactersLifeText[currentAttackedCharacter].classList.add("textDead");
+			charactersLifeText[attacked].innerHTML = "dead";
+			charactersLifeText[attacked].classList.add("textDead");
 			
 			if (!phantom){
-				characterCurrentLife[currentAttackedCharacter] = -1;
-				addPhantom(currentAttackedCharacter);
+				characterCurrentLife[attacked] = -1;
+				addPhantom(attacked);
 
 				phantom = true;
 			}
-
 
 		} else {
 			setAction(attacked, getAnimationIndex(attacked, "Hurt"));
@@ -423,7 +424,7 @@ const main = (arg = []) => {
 			logo.classList.add("red");
 		}
 
-		timeCurrentHitGoal = Math.max(activeAction[currentCharacterAttacking].getClip().duration, activeAction[currentAttackedCharacter].getClip().duration) + 0.1;
+		timeCurrentHitGoal = Math.max(activeAction[attacking].getClip().duration, activeAction[attacked].getClip().duration) + 0.1;
 		timeCurrentHitRemaining = 0;
 	}
 	
@@ -489,13 +490,28 @@ const main = (arg = []) => {
 
 	const chain = (chain) => {
 		list_attack = list_attack.concat(chain);
+		submitAttack();
+	};
 
-		if (currentAttackedCharacter == -1){
+	function submitAttack(){
+		if (currentAttackedCharacter != -1 || !modelsReady)
+			return;
+
+		if (list_attack.length < 0)
+			return; 
+		
+		if (list_attack[0].length == 3 
+			&& list_attack[0][0] != list_attack[0][1] 
+			&& characterCurrentLife[list_attack[0][0]] > 0
+			&& characterCurrentLife[list_attack[0][1]] > 0 ){	
 			coefficient = list_attack[0][2];
 			parseKey(list_attack[0][0], "key");
 			parseKey(list_attack[0][1], "key");
+		} else {
+			list_attack.splice(0, 1);
+			submitAttack();
 		}
-	};
+	}
 
 	const send = () => {
 		const result = [...characterCurrentLife];
@@ -512,6 +528,8 @@ const main = (arg = []) => {
 	window.send = send;
 }
 
-main([-1, 1.3, 3.4, 2.1515, 3.2552, 1.7898]);
+main(/*[-1, 1.3, 3.4, 2.1515, 3.2552, 1.7898]*/);
+send();
+chain([[1, 2, 2], [2, 3, 3]]);
 
 window.main = main;

@@ -426,6 +426,8 @@ const main = (arg = []) => {
 
 		timeCurrentHitGoal = Math.max(activeAction[attacking].getClip().duration, activeAction[attacked].getClip().duration) + 0.1;
 		timeCurrentHitRemaining = 0;
+
+		send();
 	}
 	
 	function convertKeyToCharacterNumber(key){

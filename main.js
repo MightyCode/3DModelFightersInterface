@@ -97,7 +97,7 @@ const main = (arg = []) => {
 
 		if (arg.length > characterIndex){
 			characterCurrentLife.push(Math.floor(arg[characterIndex]));
-			characterDamageTaken.push((arg[characterIndex] * 100 - Math.floor(arg[characterIndex])  * 100).toFixed(2));
+			characterDamageTaken.push(parseFloat((arg[characterIndex] * 100 - Math.floor(arg[characterIndex])  * 100).toFixed(2)));
 		} else {
 			characterCurrentLife.push(CONSTANTS.GameData["numberLife"]);
 			characterDamageTaken.push(0);
@@ -138,7 +138,7 @@ const main = (arg = []) => {
 		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
 
-		text.innerHTML = characterDamageTaken[characterIndex] + " %";
+		text.innerHTML = characterDamageTaken[characterIndex].toFixed(2) + " %";
 
 		document.body.appendChild(text);
 		
@@ -380,7 +380,7 @@ const main = (arg = []) => {
 			return;
 
 		characterDamageTaken[attacked] += (CONSTANTS.GameData["damage"] / CONSTANTS.CharactersData[attacking]["coefficient"]) * coefficient;
-		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(1));
+		characterDamageTaken[attacked] = parseFloat(characterDamageTaken[attacked].toFixed(2));
 
 		let death = false;
 
@@ -497,7 +497,7 @@ const main = (arg = []) => {
 		if (currentAttackedCharacter != -1 || !modelsReady)
 			return;
 
-		if (list_attack.length < 0)
+		if (list_attack.length <= 0)
 			return; 
 		
 		if (list_attack[0].length == 3 
@@ -517,7 +517,6 @@ const main = (arg = []) => {
 		const result = [...characterCurrentLife];
 
 		for (let characterIndex = 0; characterIndex < characterCurrentLife.length; ++characterIndex){
-			console.log((characterDamageTaken[characterIndex] / 100).toFixed(4));
 			result[characterIndex] = result[characterIndex] + parseFloat((characterDamageTaken[characterIndex] / 100).toFixed(4));
 		}
 
@@ -528,8 +527,8 @@ const main = (arg = []) => {
 	window.send = send;
 }
 
-main(/*[-1, 1.3, 3.4, 2.1515, 3.2552, 1.7898]*/);
-send();
-chain([[1, 2, 2], [2, 3, 3]]);
+//main(/*[-1, 1.3, 3.4, 2.1515, 3.2552, 1.7898]*/);
+//send();
+//chain([[1, 2, 2], [2, 3, 3]]);
 
 window.main = main;

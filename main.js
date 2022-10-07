@@ -138,7 +138,13 @@ const main = (arg = []) => {
 		text.style.right = textPosition[0]  + 'px';
 		text.style.top = textPosition[1]  + 'px';
 
-		text.innerHTML = characterDamageTaken[characterIndex].toFixed(2) + " %";
+		
+		if (characterCurrentLife[characterIndex] <= 0 ){
+			text.innerHTML = "dead";
+		} else {
+			text.innerHTML = characterDamageTaken[characterIndex].toFixed(2) + " %";
+		}
+		
 
 		document.body.appendChild(text);
 		
@@ -418,7 +424,7 @@ const main = (arg = []) => {
 			setAction(attacking, getAnimationIndex(attacking, "Attack"));
 
 			
-			charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked] + " %";
+			charactersLifeText[attacked].innerHTML = characterDamageTaken[attacked].toFixed(2) + " %";
 			charactersLifeText[attacked].classList.add("characterHitText");
 
 			logo.classList.add("red");
